@@ -12,17 +12,22 @@
 - PHP 8.x
 - Composer
 - MySQL o MariaDB
-- Laravel 11 
+- Laravel 11
+- Node.js y NPM
 
 ## Instalación
 
-1. Clonar el repositorio `git clone ...`
-2. Ejecutar `composer install`
-3. Configurar `.env` con los datos de la base de datos(en caso de error generar la llave `php artisan key:generate`)
-4. Ejecutar `php artisan migrate --seed`
-5. Ejecutar `npm install`
-6. Ejecutar `npm run dev`
-7. Iniciar servidor: `php artisan serve`
+1. Clonar el repositorio:  
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd <nombre_del_proyecto>
+2. Instalar dependencias PHP: `composer install`
+3. Copiar el archivo de entorno y configurarlo: `.env` Luego editar .env con los datos de conexión a tu base de datos.
+4. En caso de fallo generar llave `php artisan key:generate`)
+5. Ejecutar migraciones y seeders `php artisan migrate --seed`
+6. Instalar dependencias de Node.js `npm install`
+7. Compilar los assets `npm run dev`
+8. Iniciar el servidor local `php artisan serve`
 
 ### Uso
 - Ir a `http://localhost:8000`
