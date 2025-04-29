@@ -20,13 +20,41 @@
               </div>
               
               <div class="col-md-6">
-                <label for="brand" class="form-label">Marca</label>
-                <input v-model="vehiculo.brand" type="text" id="brand" class="form-control" placeholder="Toyota">
+                <label class="form-label">Marca</label>
+                <select 
+                  v-model="vehiculo.brand_id" 
+                  @change="cargarModelos" 
+                  class="form-select" 
+                  :disabled="cargandoMarcas"
+                >
+                  <option value="">Seleccione una marca</option>
+                  <option 
+                    v-for="marca in marcas" 
+                    :key="marca.id" 
+                    :value="marca.id"
+                  >
+                    {{ marca.name }}
+                  </option>
+                </select>
               </div>
               
               <div class="col-md-6">
-                <label for="model" class="form-label">Modelo</label>
-                <input v-model="vehiculo.model" type="text" id="model" class="form-control" placeholder="Corolla">
+                <label class="form-label">Modelo</label>
+                <label class="form-label">Modelo</label>
+                <select 
+                  v-model="vehiculo.model_id" 
+                  class="form-select"
+                  :disabled="!vehiculo.brand_id || cargandoModelos"
+                >
+                  <option value="">Seleccione un modelo</option>
+                  <option 
+                    v-for="modelo in modelos" 
+                    :key="modelo.id" 
+                    :value="modelo.id"
+                  >
+                    {{ modelo.name }}
+                  </option>
+                </select>
               </div>
               
               <div class="col-md-6">
@@ -93,10 +121,19 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      marcas: [],
+      modelos: [],
+      marcaSeleccionada: null, 
+      modeloSeleccionado: null,
+      cargandoMarcas: false,
+      cargandoModelos: false,
+      errorModelos: '',
       vehiculo: {
         plate: '',
         brand: '',
-        model: '',
+        brand_id: '', 
+        model: '', 
+        model_id: '',
         manufacturing_year: '',
       },
       contacto: {
@@ -108,12 +145,59 @@ export default {
       },
     };
   },
+  mounted() {
+    this.cargarMarcas();
+  },
   methods: {
     regreso() {
       window.location.href = '/vehicles'; 
     },
+    async cargarMarcas() {
+      this.cargandoMarcas = true;
+      try {
+        const response = await axios.get('/marcas');
+        this.marcas = response.data;
+      } catch (error) {
+        console.error('Error cargando marcas:', error);
+      } finally {
+        this.cargandoMarcas = false;
+      }
+    },
+    async cargarModelos() {
+      // Resetear modelo seleccionado al cambiar marca
+      this.modeloSeleccionado = null;
+      this.errorModelos = '';
+      
+      // Encuentra la marca seleccionada completa
+      this.marcaSeleccionada = this.marcas.find(m => m.id == this.vehiculo.brand_id);
+      
+      if (!this.marcaSeleccionada) {
+        this.modelos = [];
+        return;
+      }
+
+      this.cargandoModelos = true;
+      try {
+        const response = await axios.get(`/marcas/${this.marcaSeleccionada.id}/modelos`);
+        this.modelos = response.data;
+      } catch (error) {
+        console.error('Error cargando modelos:', error);
+        this.errorModelos = error.response?.data?.error || 'Error al cargar modelos';
+        this.modelos = [];
+      } finally {
+        this.cargandoModelos = false;
+      }
+    },
     async guardarDatos() {
       try {
+        // Asignar nombres antes de enviar
+        if (this.marcaSeleccionada) {
+          this.vehiculo.brand = this.marcaSeleccionada.name;
+        }
+        if (this.modeloSeleccionado) {
+          this.vehiculo.model = this.modeloSeleccionado.name;
+        }
+
         const payload = {
           ...this.vehiculo,
           ...this.contacto,
@@ -130,27 +214,59 @@ export default {
         });
 
         // Reseteamos los campos
-        this.vehiculo = { plate: '', brand: '', model: '', manufacturing_year: '' };
-        this.contacto = { first_name: '', last_name: '', document_number: '', email: '', phone: '' };
+        this.resetForm();
 
       } catch (error) {
-        if (error.response && error.response.data.errors) {
-          let mensajes = Object.values(error.response.data.errors).flat().join('<br>');
-          Swal.fire({
-            icon: 'error',
-            title: 'Errores de validación',
-            html: mensajes,
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Algo salió mal. Por favor intente nuevamente.',
-          });
-        }
+        this.handleError(error);
       }
     },
+    resetForm() {
+      this.vehiculo = { 
+        plate: '', 
+        brand: '', 
+        brand_id: '',
+        model: '', 
+        model_id: '',
+        manufacturing_year: '' 
+      };
+      this.contacto = { 
+        first_name: '', 
+        last_name: '', 
+        document_number: '', 
+        email: '', 
+        phone: '' 
+      };
+      this.marcaSeleccionada = null;
+      this.modeloSeleccionado = null;
+    },
+    handleError(error) {
+      if (error.response && error.response.data.errors) {
+        let mensajes = Object.values(error.response.data.errors).flat().join('<br>');
+        Swal.fire({
+          icon: 'error',
+          title: 'Errores de validación',
+          html: mensajes,
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Algo salió mal. Por favor intente nuevamente.',
+        });
+      }
+    }
   },
+  watch: {
+    // Actualizar modeloSeleccionado cuando cambia el select de modelos
+    'vehiculo.model_id': function(newVal) {
+      this.modeloSeleccionado = this.modelos.find(m => m.id == newVal);
+    },
+    // Actualizar marcaSeleccionada cuando cambia el select de marcas
+    'vehiculo.brand_id': function(newVal) {
+      this.marcaSeleccionada = this.marcas.find(m => m.id == newVal);
+      if (newVal) this.cargarModelos();
+    }
+  }
 };
 </script>
 

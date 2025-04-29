@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Vehicles;
 use App\Models\Contacts;
+use App\Models\Brand;
+use App\Models\Models;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -183,6 +185,52 @@ class VehiclesController extends Controller
 
     // 3. Devolver $data en lugar de $contactos
     return response()->json($data, 200);  
+}
+
+public function marcas()
+{
+    try {
+        $marcas = Brand::select('id', 'name')->get();
+        return response()->json($marcas);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Error al cargar las marcas',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function modelos($id)
+{
+    try {
+        $marca = Brand::findOrFail($id);
+        $modelos = $marca->models()->select('id', 'name')->get();
+        
+        return response()->json($modelos);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json([
+            'error' => 'Marca no encontrada'
+        ], 404);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Error al cargar los modelos',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function modelos2(Request $request)
+{
+    $marca = $request->query('marca');
+
+    if (!$marca) {
+        return response()->json(['error' => 'Debe enviar el parámetro "marca"'], 400);
+    }
+
+    // Por ejemplo, si la columna se llama 'brand' en tu tabla de modelos:
+    $modelos = Models::where('brand_id', $marca)->get('name', 'id');
+
+    return response()->json($modelos);
 }
     
 }

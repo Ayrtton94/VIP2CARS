@@ -16,8 +16,10 @@ Route::resource('vehicles',VehiclesController::class);
 Route::get('api/list', [VehiclesController::class, 'listar']);
 Route::get('api/listarup/{id}', [VehiclesController::class, 'listarup']);
 
-Route::get('/marcas', [VehiclesController::class, 'Listarmarca']);
+Route::get('/marcas', [VehiclesController::class, 'marcas']);
 Route::get('/marcas/{id}/modelos', [VehiclesController::class, 'modelos']);
+
+Route::get('/api/modelos', [VehiclesController::class, 'modelos2']);
 
 Route::get('api/{id}/listar', [VehiclesController::class, 'listar1']);
 //Route::get('api/{id}/listar', [VehiclesController::class, 'listar2']);
