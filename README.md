@@ -16,7 +16,7 @@
 
 ## Instalación
 
-1. Clonar el repositorio
+1. Clonar el repositorio `git clone ...`
 2. Ejecutar `composer install`
 3. Configurar `.env` con los datos de la base de datos(en caso de error generar la llave `php artisan key:generate`)
 4. Ejecutar `php artisan migrate --seed`
