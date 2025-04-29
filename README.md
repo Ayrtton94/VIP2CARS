@@ -18,10 +18,11 @@
 
 1. Clonar el repositorio
 2. Ejecutar `composer install`
-3. Ejecutar `npm install && npm run dev`
-4. Configurar `.env` con los datos de la base de datos
-5. Ejecutar `php artisan migrate --seed`
-6. Iniciar servidor: `php artisan serve`
+3. Configurar `.env` con los datos de la base de datos(en caso de error generar la llave `php artisan key:generate`)
+4. Ejecutar `php artisan migrate --seed`
+5. Ejecutar `npm install`
+6. Ejecutar `npm run dev`
+7. Iniciar servidor: `php artisan serve`
 
 ### Uso
 - Ir a `http://localhost:8000`
