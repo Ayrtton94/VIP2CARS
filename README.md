@@ -23,7 +23,7 @@
    cd <nombre_del_proyecto>
 2. Instalar dependencias PHP: `composer install`
 3. Copiar el archivo de entorno y configurarlo: `.env` Luego editar .env con los datos de conexión a tu base de datos.
-4. En caso de fallo generar llave `php artisan key:generate`)
+4. En caso de fallo generar llave `php artisan key:generate`
 5. Ejecutar migraciones y seeders `php artisan migrate --seed`
 6. Instalar dependencias de Node.js `npm install`
 7. Compilar los assets `npm run dev`
