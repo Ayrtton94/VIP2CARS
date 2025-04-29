@@ -8,6 +8,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::redirect('/', '/vehicles');
+
 Route::resource('vehicles',VehiclesController::class);
 
 //api
