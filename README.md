@@ -20,7 +20,7 @@
 2. Ejecutar `composer install`
 3. Ejecutar `npm install && npm run dev`
 4. Configurar `.env` con los datos de la base de datos
-5. Ejecutar `php artisan migrate`
+5. Ejecutar `php artisan migrate --seed`
 6. Iniciar servidor: `php artisan serve`
 
 ### Uso
