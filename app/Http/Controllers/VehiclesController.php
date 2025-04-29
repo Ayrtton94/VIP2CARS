@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicles;
+use App\Models\Contacts;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -81,22 +82,7 @@ class VehiclesController extends Controller
      */
     public function show($id)
 {
-    $vehiculo = Vehicles::with('contacts')->findOrFail($id);
-
-    $contact = $vehiculo->contacts->first();
-
-    return response()->json([
-        'id' => $vehiculo->id,
-        'plate' => $vehiculo->plate,
-        'brand' => $vehiculo->brand,
-        'model' => $vehiculo->model,
-        'manufacturing_year' => $vehiculo->manufacturing_year,
-        'first_name' => $contact ? $contact->first_name : '',
-        'last_name' => $contact ? $contact->last_name : '',
-        'document_number' => $contact ? $contact->document_number : '',
-        'email' => $contact ? $contact->email : '',
-        'phone' => $contact ? $contact->phone : '',
-    ]);
+    
 }
 
     /**
@@ -151,8 +137,6 @@ class VehiclesController extends Controller
         ], 500);
     }
 }
-
-
     /**
      * Remove the specified resource from storage.
      */
@@ -172,5 +156,33 @@ class VehiclesController extends Controller
             'message' => 'Eliminado con éxito.'
         ];
     }
+
+    public function listar1($id)
+{
+    $vehiculo = Vehicles::find($id);
+    if (!$vehiculo) {
+        return response()->json(['error' => 'Vehículo no encontrado'], 404);
+    }
+    $data = [];
+    $contactos = $vehiculo->contacts()->get();
+    
+    foreach ($contactos as $contact) {
+        $data[] = [
+            'id' => $vehiculo->id,
+            'plate' => $vehiculo->plate,
+            'brand' => $vehiculo->brand,
+            'model' => $vehiculo->model,
+            'manufacturing_year' => $vehiculo->manufacturing_year,
+            'first_name' => $contact->first_name ?? '',
+            'last_name' => $contact->last_name ?? '',
+            'document_number' => $contact->document_number ?? '',
+            'email' => $contact->email ?? '',
+            'phone' => $contact->phone ?? '',
+        ];          
+    }
+
+    // 3. Devolver $data en lugar de $contactos
+    return response()->json($data, 200);  
+}
     
 }

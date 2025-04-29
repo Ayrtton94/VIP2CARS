@@ -86,8 +86,10 @@
               <i class="fas fa-arrow-left me-2"></i>Regresar
             </button>
             
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save me-2"></i>Guardar Cambios
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+              <i v-else class="fas fa-save me-2"></i>
+              {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
           </div>
         </form>
@@ -103,7 +105,7 @@ import Swal from 'sweetalert2';
 export default {
   props: {
     vehiculoId: {
-      type: Number,
+      type: [Number, String],
       required: true,
     },
   },
@@ -118,73 +120,87 @@ export default {
         last_name: '',
         document_number: '',
         email: '',
-        phone: '',
+        phone: ''
       },
+      loading: false,
+      errors: {}
     };
   },
   methods: {
     regreso() {
-      window.location.href = '/vehicles'; 
+      window.location.href= '/vehicles';
     },
     async cargarVehiculo() {
-      try {
-        const response = await axios.get(`/vehicles/${this.vehiculoId}`);
-        const data = response.data;
-        
-        this.form = {
-          plate: data.plate || '',
-          brand: data.brand || '',
-          model: data.model || '',
-          manufacturing_year: data.manufacturing_year || '',
-          first_name: data.first_name || '',
-          last_name: data.last_name || '',
-          document_number: data.document_number || '',
-          email: data.email || '',
-          phone: data.phone || '',
-        };
-      } catch (error) {
-        console.error(error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los datos del vehículo.',
-          timer: 3000
-        });
-      }
-    },
+  try {
+    const response = await axios.get(`/api/${this.vehiculoId}/listar`);
+    if (response.data && response.data.length > 0) {
+      this.form = {
+        ...response.data[0],
+        vehicle: {
+          id: response.data[0].id,
+          plate: response.data[0].plate,
+          brand: response.data[0].brand,
+          model: response.data[0].model,
+          manufacturing_year: response.data[0].manufacturing_year
+        },
+        contact: {
+          first_name: response.data[0].first_name,
+          last_name: response.data[0].last_name,
+          document_number: response.data[0].document_number,
+          email: response.data[0].email,
+          phone: response.data[0].phone
+        }
+      };
+    } else {
+      throw new Error('Vehículo sin contactos registrados');
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.error || 'No se pudo cargar el vehículo',
+      timer: 2000
+    });
+    this.$router.push('/vehicles');
+  }
+},
     async actualizarVehiculo() {
+      this.loading = true;
       try {
-        await axios.put(`/vehicles/${this.vehiculoId}`, this.form);
+        const response = await axios.put(`/vehicles/${this.vehiculoId}`, this.form);
         
         Swal.fire({
           icon: 'success',
-          title: '¡Actualizado!',
-          text: 'Los datos se actualizaron correctamente.',
-          timer: 2000,
-          showConfirmButton: false
+          title: '¡Guardado!',
+          text: 'Los cambios se guardaron correctamente',
+          showConfirmButton: false,
+          timer: 2000
         }).then(() => {
           this.regreso();
         });
-        
       } catch (error) {
-        console.error(error);
-        let errorMessage = 'Ocurrió un error al actualizar.';
-        
-        if (error.response && error.response.data.errors) {
-          errorMessage = Object.values(error.response.data.errors).flat().join('<br>');
+        if (error.response && error.response.status === 422) {
+          this.errors = error.response.data.errors;
+          Swal.fire({
+            icon: 'error',
+            title: 'Error de validación',
+            html: Object.values(this.errors).flat().join('<br>')
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Ocurrió un error al guardar los cambios'
+          });
         }
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          html: errorMessage
-        });
+      } finally {
+        this.loading = false;
       }
-    },
+    }
   },
   mounted() {
     this.cargarVehiculo();
-  },
+  }
 };
 </script>
 
@@ -220,7 +236,22 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.btn-primary:disabled {
+  background-color: #6c757d;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-outline-secondary:hover {
   background-color: #f8f9fa;
+}
+
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875em;
 }
 </style>

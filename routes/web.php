@@ -8,7 +8,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::redirect('/', '/vehicles');
+Route::redirect('/', '/vehicles'); 
 
 Route::resource('vehicles',VehiclesController::class);
 
@@ -18,3 +18,6 @@ Route::get('api/listarup/{id}', [VehiclesController::class, 'listarup']);
 
 Route::get('/marcas', [VehiclesController::class, 'Listarmarca']);
 Route::get('/marcas/{id}/modelos', [VehiclesController::class, 'modelos']);
+
+Route::get('api/{id}/listar', [VehiclesController::class, 'listar1']);
+//Route::get('api/{id}/listar', [VehiclesController::class, 'listar2']);
